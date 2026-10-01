@@ -1,0 +1,105 @@
+{
+  "task_name": "oauth2-session-auth",
+  "goal": "Implement OAuth2 Google authentication with secure HTTP-only cookie sessions and user profile endpoint",
+  "total_waves": 4,
+  "metadata": {
+    "domain": "authentication",
+    "target_stack": "TypeScript / Node / Express"
+  },
+  "tasks": [
+    {
+      "id": "task-01-audit",
+      "title": "Audit Current Session and Auth Middleware",
+      "role": "researcher",
+      "description": "Inspect existing express middleware, user schema in Prisma, and environment variable conventions.",
+      "depends_on": [],
+      "target_files": [
+        "src/server.ts",
+        "src/middleware/auth.ts",
+        "prisma/schema.prisma"
+      ],
+      "acceptance_criteria": [
+        "Document current session cookie attributes (sameSite, secure, httpOnly)",
+        "Confirm user model fields for googleId and avatarUrl",
+        "Verify missing dependencies (google-auth-library, jsonwebtoken)"
+      ],
+      "estimated_complexity": "low",
+      "output_artifacts": ["auth-audit-report.md"]
+    },
+    {
+      "id": "task-02-contract",
+      "title": "Define OAuth2 Route Contracts and Token Types",
+      "role": "architect",
+      "description": "Specify request/response TypeScript interfaces for /auth/google, /auth/callback, and /api/me.",
+      "depends_on": ["task-01-audit"],
+      "target_files": [
+        "src/types/auth.ts",
+        "src/contracts/user.dto.ts"
+      ],
+      "acceptance_criteria": [
+        "Typed interfaces for GoogleProfile payload and session claims",
+        "DTO definitions for /api/me response",
+        "Error response schema definitions for expired or invalid tokens"
+      ],
+      "estimated_complexity": "medium",
+      "output_artifacts": ["auth-contract.ts"]
+    },
+    {
+      "id": "task-03-backend-impl",
+      "title": "Implement OAuth Handlers and Session Store",
+      "role": "implementer",
+      "description": "Implement OAuth verification, session cookie issuance, and user synchronization.",
+      "depends_on": ["task-02-contract"],
+      "target_files": [
+        "src/services/authService.ts",
+        "src/controllers/authController.ts",
+        "src/routes/authRoutes.ts"
+      ],
+      "acceptance_criteria": [
+        "State parameter CSRF verification implemented",
+        "ID token verified against Google public keys",
+        "HTTP-only session cookie set with 7-day TTL",
+        "GET /api/me returns user profile or 401 Unauthorized"
+      ],
+      "estimated_complexity": "high",
+      "output_artifacts": ["auth-implementation.patch"]
+    },
+    {
+      "id": "task-04-test-suite",
+      "title": "Unit and Integration Tests for Auth Routes",
+      "role": "tester",
+      "description": "Write automated Supertest integration tests mocking Google token verification responses.",
+      "depends_on": ["task-03-backend-impl"],
+      "target_files": [
+        "tests/integration/auth.test.ts",
+        "tests/mocks/googleAuth.mock.ts"
+      ],
+      "acceptance_criteria": [
+        "Successful login exchanges mock token for session cookie",
+        "Tampered CSRF state parameter returns 400 Bad Request",
+        "Expired session cookie returns 401 on /api/me",
+        "All test runs pass in CI test runner"
+      ],
+      "estimated_complexity": "medium",
+      "output_artifacts": ["test-report.json"]
+    },
+    {
+      "id": "task-05-security-review",
+      "title": "Security and OWASP Audit on Cookie Handling",
+      "role": "reviewer",
+      "description": "Audit cookie flags, timing attack vulnerabilities on token comparisons, and secret management.",
+      "depends_on": ["task-04-test-suite"],
+      "target_files": [
+        "src/services/authService.ts",
+        "src/controllers/authController.ts"
+      ],
+      "acceptance_criteria": [
+        "Verify constant-time comparison on CSRF tokens",
+        "Confirm no access tokens or client secrets are exposed in client logs",
+        "Check SameSite=Lax or Strict on all session cookies"
+      ],
+      "estimated_complexity": "low",
+      "output_artifacts": ["security-review-signoff.md"]
+    }
+  ]
+}

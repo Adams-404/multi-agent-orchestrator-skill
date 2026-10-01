@@ -1,0 +1,115 @@
+{
+  "task_name": "data-pipeline-parallel-refactor",
+  "goal": "Refactor monolithic ingestion pipeline into separate streaming reader and batch writer workers",
+  "total_waves": 3,
+  "metadata": {
+    "domain": "data-engineering",
+    "target_stack": "Python / AsyncIO / Redis"
+  },
+  "tasks": [
+    {
+      "id": "task-01-audit-reader",
+      "title": "Audit Ingestion Socket and Stream Protocol",
+      "role": "researcher",
+      "description": "Inspect websocket connection handlers, buffer pooling, and backpressure behavior.",
+      "depends_on": [],
+      "target_files": [
+        "pipeline/reader.py",
+        "pipeline/protocol.py"
+      ],
+      "acceptance_criteria": [
+        "Document current byte framing and max message limits",
+        "Identify dropped frame conditions under network spikes"
+      ],
+      "estimated_complexity": "low",
+      "output_artifacts": ["reader-audit.md"]
+    },
+    {
+      "id": "task-02-audit-writer",
+      "title": "Audit Database Batch Flush and WAL Write Patterns",
+      "role": "researcher",
+      "description": "Inspect batch insert sizes, connection pool timeouts, and lock contention.",
+      "depends_on": [],
+      "target_files": [
+        "pipeline/writer.py",
+        "pipeline/db.py"
+      ],
+      "acceptance_criteria": [
+        "Record current transaction commit frequency and batch latencies",
+        "Identify table lock bottlenecks during bulk insert"
+      ],
+      "estimated_complexity": "low",
+      "output_artifacts": ["writer-audit.md"]
+    },
+    {
+      "id": "task-03-queue-contract",
+      "title": "Design Redis Streams Buffer Schema and Queue Contract",
+      "role": "architect",
+      "description": "Specify binary message payload schema and consumer group acknowledgment protocol.",
+      "depends_on": [
+        "task-01-audit-reader",
+        "task-02-audit-writer"
+      ],
+      "target_files": [
+        "pipeline/queue_contract.py"
+      ],
+      "acceptance_criteria": [
+        "Define stream key naming conventions and retention limits",
+        "Document consumer group acknowledgment and retry dead-letter policy"
+      ],
+      "estimated_complexity": "medium",
+      "output_artifacts": ["queue-contract.md"]
+    },
+    {
+      "id": "task-04-impl-isolated-reader",
+      "title": "Implement Decoupled Stream Reader Worker",
+      "role": "implementer",
+      "description": "Write standalone async reader reading external sockets and appending to Redis stream.",
+      "depends_on": ["task-03-queue-contract"],
+      "target_files": [
+        "pipeline/workers/reader_worker.py"
+      ],
+      "acceptance_criteria": [
+        "Zero database dependencies in reader process",
+        "Backpressure drops or pauses ingest cleanly when stream buffer exceeds limit"
+      ],
+      "estimated_complexity": "medium",
+      "output_artifacts": ["reader-worker.patch"]
+    },
+    {
+      "id": "task-05-impl-isolated-writer",
+      "title": "Implement Decoupled Batch Writer Worker",
+      "role": "implementer",
+      "description": "Write consumer worker reading Redis stream batches and issuing transactional bulk inserts.",
+      "depends_on": ["task-03-queue-contract"],
+      "target_files": [
+        "pipeline/workers/writer_worker.py"
+      ],
+      "acceptance_criteria": [
+        "Batch inserts of up to 500 records per transaction",
+        "ACK stream messages only after successful database commit"
+      ],
+      "estimated_complexity": "medium",
+      "output_artifacts": ["writer-worker.patch"]
+    },
+    {
+      "id": "task-06-end-to-end-tests",
+      "title": "End-to-End Pipeline Mock Ingestion Verification",
+      "role": "tester",
+      "description": "Simulate 10,000 ingested events and verify zero data loss across reader and writer workers.",
+      "depends_on": [
+        "task-04-impl-isolated-reader",
+        "task-05-impl-isolated-writer"
+      ],
+      "target_files": [
+        "tests/e2e/test_pipeline.py"
+      ],
+      "acceptance_criteria": [
+        "10,000 mock events ingested through reader and verified in test database",
+        "Worker crash and restart resumes stream without duplicates or drops"
+      ],
+      "estimated_complexity": "high",
+      "output_artifacts": ["pipeline-e2e-report.json"]
+    }
+  ]
+}
