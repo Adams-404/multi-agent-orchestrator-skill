@@ -137,37 +137,37 @@ npx skills add Adams-404/multi-agent-orchestrator-skill
 
 ```
 multi-agent-orchestrator-skill/
-├── SKILL.md                          # Core agent skill instructions and guidelines
-├── README.md                         # Project documentation and CLI reference
-├── LIVE_TEST_WALKTHROUGH.md          # Step-by-step terminal execution guide
-├── HACKTOBERFEST.md                  # Hacktoberfest 2026 contribution instructions
-├── CONTRIBUTING.md                   # Development setup and coding standards
-├── LICENSE                           # MIT License
-├── pyproject.toml                    # Python project packaging metadata
-├── scripts/
-│   ├── __init__.py                   # Package initialization
-│   ├── orchestrator.py               # Core decomposition engine, DAG solver, and CLI
-│   └── prompt_generator.py           # Sub-agent prompt compiler with context isolation
-├── templates/
-│   ├── plan_schema.json              # JSON Schema for decomposition plans
-│   ├── handoff_schema.json           # JSON Schema for inter-agent handoff contracts
-│   └── roles/
-│       ├── researcher.json           # Read-only exploration agent profile
-│       ├── architect.json            # Contract and interface designer profile
-│       ├── implementer.json          # Bounded implementation engineer profile
-│       ├── tester.json               # Test suite automation profile
-│       └── reviewer.json             # Security and quality auditor profile
-├── examples/
-│   ├── fullstack-feature-breakdown.md
-│   ├── incident-investigation-breakdown.md
-│   └── sample-tasks/
-│       ├── auth-service.json
-│       └── data-pipeline-refactor.json
-└── tests/
-    ├── __init__.py
-    ├── test_decomposer.py            # Unit tests for DAG resolution & cycle checks
-    ├── test_prompt_generator.py      # Unit tests for prompt compilation
-    └── test_orchestrator_cli.py      # Integration tests for CLI commands
+|-- SKILL.md                          # Core agent skill instructions and guidelines
+|-- README.md                         # Project documentation and CLI reference
+|-- LIVE_TEST_WALKTHROUGH.md          # Step-by-step terminal execution guide
+|-- HACKTOBERFEST.md                  # Hacktoberfest 2026 contribution instructions
+|-- CONTRIBUTING.md                   # Development setup and coding standards
+|-- LICENSE                           # MIT License
+|-- pyproject.toml                    # Python project packaging metadata
+|-- scripts/
+|   |-- __init__.py                   # Package initialization
+|   |-- orchestrator.py               # Core decomposition engine, DAG solver, and CLI
+|   \-- prompt_generator.py           # Sub-agent prompt compiler with context isolation
+|-- templates/
+|   |-- plan_schema.json              # JSON Schema for decomposition plans
+|   |-- handoff_schema.json           # JSON Schema for inter-agent handoff contracts
+|   \-- roles/
+|       |-- researcher.json           # Read-only exploration agent profile
+|       |-- architect.json            # Contract and interface designer profile
+|       |-- implementer.json          # Bounded implementation engineer profile
+|       |-- tester.json               # Test suite automation profile
+|       \-- reviewer.json             # Security and quality auditor profile
+|-- examples/
+|   |-- fullstack-feature-breakdown.md
+|   |-- incident-investigation-breakdown.md
+|   \-- sample-tasks/
+|       |-- auth-service.json
+|       \-- data-pipeline-refactor.json
+\-- tests/
+    |-- __init__.py
+    |-- test_decomposer.py            # Unit tests for DAG resolution & cycle checks
+    |-- test_prompt_generator.py      # Unit tests for prompt compilation
+    \-- test_orchestrator_cli.py      # Integration tests for CLI commands
 ```
 
 ---
