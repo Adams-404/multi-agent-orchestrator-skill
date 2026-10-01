@@ -267,3 +267,71 @@ class TaskDecomposer:
 
         self.compute_waves(plan)
         return plan
+
+
+class PlanValidator:
+    """Validates structural and semantic soundness of a decomposition plan."""
+
+    MAX_FILES_PER_SUBAGENT = 12
+
+    def __init__(self, decomposer: Optional[TaskDecomposer] = None) -> None:
+        self.decomposer = decomposer or TaskDecomposer()
+
+    def validate(self, plan: DecompositionPlan) -> List[str]:
+        """Validates the plan and returns a list of issues found.
+
+        Returns:
+            List of warning or error strings. If errors exist, raises PlanValidationError.
+        """
+        errors: List[str] = []
+        warnings: List[str] = []
+
+        if not plan.task_name or not plan.task_name.strip():
+            errors.append("Plan 'task_name' cannot be empty.")
+        if not plan.goal or not plan.goal.strip():
+            errors.append("Plan 'goal' cannot be empty.")
+        if not plan.tasks:
+            errors.append("Plan must contain at least one sub-task.")
+
+        task_ids = set(plan.tasks.keys())
+
+        for t_id, task in plan.tasks.items():
+            if not task.id or not task.id.strip():
+                errors.append(f"Task with title '{task.title}' has empty ID.")
+            if not task.title or not task.title.strip():
+                errors.append(f"Task '{t_id}' has empty title.")
+            if not task.description or not task.description.strip():
+                errors.append(f"Task '{t_id}' has empty description.")
+
+            if task.role not in self.decomposer.SUPPORTED_ROLES:
+                errors.append(
+                    f"Task '{t_id}' has unsupported role '{task.role}'. "
+                    f"Supported: {', '.join(self.decomposer.SUPPORTED_ROLES.keys())}"
+                )
+
+            if t_id in task.depends_on:
+                errors.append(f"Task '{t_id}' cannot depend on itself.")
+
+            for dep in task.depends_on:
+                if dep not in task_ids:
+                    errors.append(f"Task '{t_id}' depends on missing task '{dep}'.")
+
+            if not task.acceptance_criteria:
+                warnings.append(f"Task '{t_id}' has no acceptance criteria.")
+
+            if len(task.target_files) > self.MAX_FILES_PER_SUBAGENT:
+                warnings.append(
+                    f"Task '{t_id}' targets {len(task.target_files)} files. "
+                    f"Consider splitting to avoid sub-agent context saturation (threshold: {self.MAX_FILES_PER_SUBAGENT})."
+                )
+
+        # Verify topological sort and cycle detection
+        try:
+            self.decomposer.compute_waves(plan)
+        except (CyclicDependencyError, PlanValidationError) as e:
+            errors.append(str(e))
+
+        if errors:
+            raise PlanValidationError("Plan validation failed:\n  - " + "\n  - ".join(errors))
+
+        return warnings
