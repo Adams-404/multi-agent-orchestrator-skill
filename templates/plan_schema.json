@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DecompositionPlanSchema",
+  "type": "object",
+  "required": ["task_name", "goal", "tasks"],
+  "properties": {
+    "task_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier slug for the overall engineering task"
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 5,
+      "description": "High-level functional goal or user request"
+    },
+    "total_waves": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total parallel execution waves computed via Kahn's algorithm"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary plan metadata"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "role", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": ["researcher", "architect", "implementer", "tester", "reviewer"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "target_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "estimated_complexity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "wave": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "ready", "running", "completed", "failed"]
+          },
+          "output_artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubAgentHandoffSchema",
+  "type": "object",
+  "required": ["source_task_id", "source_role", "target_task_id", "artifacts", "context_summary"],
+  "properties": {
+    "source_task_id": {
+      "type": "string"
+    },
+    "source_role": {
+      "type": "string",
+      "enum": ["researcher", "architect", "implementer", "tester", "reviewer"]
+    },
+    "target_task_id": {
+      "type": "string"
+    },
+    "context_summary": {
+      "type": "string",
+      "description": "Dense, factual summary of progress without conversation fluff"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "type": { "type": "string", "enum": ["notes", "contract", "patch", "test_report", "review"] }
+        }
+      }
+    },
+    "invariants_to_preserve": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
